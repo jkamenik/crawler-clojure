@@ -1,0 +1,9 @@
+language: clojure
+install: cd leiningen-core; lein install; lein classpath | tail -n 1 > .lein-bootstrap; cd ..
+script: bin/lein test
+jdk:
+  - openjdk7
+  - oraclejdk7
+matrix:
+  allow_failures:
+    - oraclejdk7
