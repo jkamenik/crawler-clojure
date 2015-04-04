@@ -9,7 +9,7 @@ A simple web crawler
 Install Java 7, and Leinigen then run the following:
 
 ```bash
-$ lein run crawler <args>
+$ lein run <url>
 ```
 
 ## Challenge
@@ -30,7 +30,7 @@ The following requirements apply to this challenge:
    accessible; 2nd level URL errors can be ignored.
 
 ```bash
-$ lein run crawler http://somedomain.com
+$ lein run http://somedomain.com
 Home -> /
 About Us -> /about_us.php
 Careers -> http://otherdomain.com/somedomain.com
