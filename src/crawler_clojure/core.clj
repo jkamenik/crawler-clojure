@@ -1,6 +1,7 @@
 (ns crawler-clojure.core
   (:require
-   [clojure.tools.cli :refer [parse-opts]])
+   [clojure.tools.cli :refer [parse-opts]]
+   [crawler-clojure.crawler :as crawler])
   (:gen-class))
 
 (def cli-options
@@ -32,4 +33,4 @@
       (:help options) (usage summary)
       errors (do (println errors)
                  (System/exit 1))
-      true (println "Finished"))))
+      true (crawler/crawl arguments (:depth options)))))
