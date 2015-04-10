@@ -15,29 +15,31 @@
   (html/html-resource
    (java.io.StringReader. s)))
 
-(defn print-link [link]
-  (let [body (first (:content link))
-        attrs (:attrs link)
-        href (:href attrs)]
-    (cond
-      (= :img (:tag body)) (println "<image> -> " href)
-      true (println body "->" href))))
-
 (defn abs-url [base link]
   (let [attrs (:attrs link)
         href (:href attrs)]
     (cond (.startsWith href "http") href
           true (str base href))))
 
-(defn crawl [url maxdepth visited]
-  (println "---" url "---" visited)
-  (when (> maxdepth 0)
-    (let [;;visited (cons url visited)
-          response (client/get url)
-          body (:body response)
-          elements (parse body)
-          links (find-links elements)]
-      ;; (println links))))
-      (doseq [link links]
-        (print-link link)
-        (println (str "---" (abs-url url link)))))))
+(defn print-link [base link depth]
+  (let [indent (apply str (repeat depth "  "))
+        body (first (:content link))
+        href (abs-url base link)
+        link-str (cond
+                   (= :img (:tag body)) (str indent "<image> -> " href)
+                   true (str indent body "->" href))]
+    (println link-str)))
+
+(defn crawl
+  ([url maxdepth] (crawl url maxdepth 0 []))
+  ([url maxdepth current visited]
+   (println "---" url "---" visited)
+   (when (> maxdepth 0)
+     (let [v (cons url visited)
+           response (client/get url)
+           body (:body response)
+           elements (parse body)
+           links (find-links elements)]
+       ;; (println links))))
+       (doseq [link links]
+         (print-link url link current))))))

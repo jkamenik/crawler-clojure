@@ -34,4 +34,4 @@
       errors (do (println errors)
                  (System/exit 1))
       true (doseq [url arguments]
-             (crawler/crawl url (:depth options) [])))))
+             (crawler/crawl url (:depth options))))))
