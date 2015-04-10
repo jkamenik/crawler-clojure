@@ -33,10 +33,5 @@
       (:help options) (usage summary)
       errors (do (println errors)
                  (System/exit 1))
-      ;; true (do
-      ;;        (println options)
-      ;;        (println arguments)
-      ;;        (println errors)
-      ;;        (println summary)))))
-      true (doall
-            (map crawler/crawl arguments (repeatedly #(:depth options)))))))
+      true (doseq [url arguments]
+             (crawler/crawl url (:depth options) [])))))
