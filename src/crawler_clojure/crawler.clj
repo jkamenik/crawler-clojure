@@ -1,6 +1,7 @@
 (ns crawler-clojure.crawler
   (:require [clj-http.client :as client]
-            [net.cgrand.enlive-html :as html]))
+            [net.cgrand.enlive-html :as html]
+            [crawler-clojure.deep-merge :refer [deep-merge]]))
 
 (defn find-links [html]
   (let [links (html/select html [[:a (html/attr? :href)]])]
@@ -15,10 +16,18 @@
   (html/html-resource
    (java.io.StringReader. s)))
 
+(defn abs-link [base link]
+  (let [attrs (:attrs link)
+        href (:href attrs)]
+    (if (not (.startsWith (str href) "http"))
+      (deep-merge link {:attrs {:href (str base href)}})
+      link)))
+
 (defn abs-url [base link]
   (let [attrs (:attrs link)
         href (:href attrs)]
-    (cond (.startsWith href "http") href
+    (println base link attrs href)
+    (cond (.startsWith (str href) "http") href
           true (str base href))))
 
 (defn print-link [base link depth]
@@ -42,4 +51,6 @@
            links (find-links elements)]
        ;; (println links))))
        (doseq [link links]
-         (print-link url link current))))))
+         (let [])
+         (print-link url link current)
+         (when (not (contains? v ))))))))
