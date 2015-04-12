@@ -6,7 +6,9 @@
 
 (def cli-options
   [["-h" "--help" "Show help"]
-   ["-d" "--depth NUM" "Max depth" :default 1]])
+   ["-d" "--depth NUM" "Max depth"
+    :default 1
+    :parse-fn #(Integer/parseInt %)]])
 
 (defn usage [opts]
   (println "crawler [options] <URL>")
