@@ -10,5 +10,5 @@
   (is (= "bar/foo" (abs-url "bar" relative-link-item))))
 
 (deftest abs-link-test
-  (is (= "http://google.com" (abs-link "bar" abs-link-item)))
-  (is (= "bar/foo" (abs-link "bar" relative-link-item))))
+  (is (= {:attrs {:href "http://google.com"}} (abs-link "bar" abs-link-item)))
+  (is (= {:attrs {:href "bar/foo"}} (abs-link "bar" relative-link-item))))
