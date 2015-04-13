@@ -1,6 +1,7 @@
 (ns crawler-clojure.crawler
   (:require [clj-http.client :as client]
             [net.cgrand.enlive-html :as html]
+            [cemerick.url :refer [url]]
             [crawler-clojure.deep-merge :refer [deep-merge]]))
 
 (defn find-links [html]
@@ -27,8 +28,8 @@
 (defn abs-link [base link]
   (let [href (url-from-link link)]
     (if (not (.startsWith (str href) "http"))
-      (deep-merge link (link-from-url (str base href)))
-      link)))
+      (deep-merge link (link-from-url (str (url base href))))
+      (deep-merge link (link-from-url (str (url href)))))))
 
 (defn abs-url [base link]
   (let [link (abs-link base link)
@@ -50,7 +51,10 @@
         body (:body response)
         elements (parse body)
         links (find-links elements)]
-    (map (fn [l] (assoc l :depth depth)) links)))
+    (map (fn [l]
+           (let [with-depth (assoc l :depth depth)
+                 abs (abs-link url with-depth)]
+             abs)) links)))
 
 (defn crawl
   ([url maxdepth] (crawl {:depth maxdepth :attrs {:href url}} maxdepth 0 [] []))
