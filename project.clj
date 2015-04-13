@@ -6,5 +6,6 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/tools.cli "0.3.1"]
                  [clj-http "1.1.0"]
-                 [enlive "1.1.5"]]
+                 [enlive "1.1.5"]
+                 [com.cemerick/url "0.1.1"]]
   :main ^:skip-aot crawler-clojure.core)
