@@ -57,27 +57,31 @@
              abs)) links)))
 
 (defn crawl
-  ([url maxdepth] (crawl {:depth maxdepth :attrs {:href url}} maxdepth 0 [] []))
+  ([url maxdepth] (crawl {:depth 0 :attrs {:href url}} maxdepth 0 [] []))
   ([link maxdepth current links visited]
-   (let [url (url-from-link link)
-         depth (or (:depth link) 0)]
-     (println "---" depth link maxdepth current visited)
-     ;; (println links)
-     (if (contains? visited url)
-       nil ;; do nothing if visited
-       (when (>= maxdepth depth)
-         (print-link link depth)
-         (let [l (collect-links url current)
-               visited (conj visited url)
-               links (apply conj links l)]
-           (recur (first links)
-                  maxdepth
-                  (inc current)
-                  (vec (rest links))
-                  visited)))))))
-
-;; visit a url
-;; return if already visited
-;; download all links
-;; convert links to abs path
-;; visit each link
+   (when link
+     (let [url (url-from-link link)
+           depth (or (:depth link) 0)]
+       ;; (println "---" depth link maxdepth current visited)
+       ;; (println (count links))
+       (if (contains? visited url)
+         nil ;; do nothing if visited
+         (when (<= depth maxdepth)
+           ;; (println depth maxdepth)
+           (print-link link depth)
+           (let [visited (conj visited url)]
+             (if (< depth maxdepth)
+               ;; We can go at least once more, collect links
+               (let [l (collect-links url (inc current))
+                     links (apply conj links l)]
+                 (recur (first links)
+                        maxdepth
+                        (inc current)
+                        (vec (rest links))
+                        visited))
+               ;; Our children will be ignored, don't bother collecting
+               (recur (first links)
+                      maxdepth
+                      (inc current)
+                      (vec (rest links))
+                      visited)))))))))
