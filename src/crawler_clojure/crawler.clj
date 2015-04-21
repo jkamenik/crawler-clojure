@@ -1,12 +1,12 @@
 (ns crawler-clojure.crawler
   (:require [clj-http.client :as client]
             [net.cgrand.enlive-html :as html]
+            [clojure.string :refer [trim]]
             [cemerick.url :refer [url]]
             [crawler-clojure.deep-merge :refer [deep-merge]]))
 
-(defn debug[& args]
+(defn debug[& args])
   ;; (apply println "---" args))
-  )
 
 (defn find-links [html]
   (let [links (html/select html [[:a (html/attr? :href)]])]
@@ -20,8 +20,10 @@
             links)))
 
 (defn parse [s]
-  (html/html-resource
-   (java.io.StringReader. s)))
+  (if s
+    (html/html-resource
+     (java.io.StringReader. s))
+    []))
 
 (defn link-from-url [url]
   {:attrs {:href url}})
@@ -44,7 +46,7 @@
 
 (defn print-link [link depth]
   (let [indent (apply str (repeat depth "  "))
-        body (first (:content link))
+        body (trim (str (first (:content link))))
         attrs (:attrs link)
         href (:href attrs)
         link-str (cond
@@ -53,7 +55,8 @@
     (println link-str)))
 
 (defn collect-links [url depth]
-  (let [response (client/get url)
+  (let [response (try (client/get url)
+                      (catch Exception e ""))
         body (:body response)
         elements (parse body)
         links (find-links elements)]
@@ -63,24 +66,22 @@
              abs)) links)))
 
 (defn crawl
-  ([url maxdepth] (crawl {:depth 0 :attrs {:href url}} maxdepth 0 () []))
-  ([link maxdepth current links visited]
-   (debug "link" link current)
+  ([url maxdepth] (crawl {:depth 0 :attrs {:href url}} maxdepth () (set ())))
+  ([link maxdepth links visited]
+   (debug "link" link)
    (debug "# links" (count links))
-   (if link
+   (when link
      (let [url (url-from-link link)
            depth (or (:depth link) 0)
            next (first links)
-           links (rest links)
-           new-current (inc current)]
+           links (rest links)]
        (if (contains? visited url)
          (do
            (debug "visited")
            (print-link link depth)
-           ;; do nothing if visited
+           ;; do nothing if visited, just recurse to the next
            (recur next
                   maxdepth
-                  new-current
                   links
                   visited))
          (when (<= depth maxdepth)
@@ -88,14 +89,13 @@
            (let [visited (conj visited url)]
              (if (< depth maxdepth)
                ;; We can go at least once more, collect links
-               (let [l (collect-links url (inc current))
-                     links (apply conj links l)
+               (let [l (collect-links url (inc depth))
+                     links (into links l)
                      next (first links)
                      links (rest links)]
                  (debug "less then max depth, collecting links")
                  (recur next
                         maxdepth
-                        new-current
                         links
                         visited))
                ;; Our children will be ignored, don't bother collecting
@@ -103,10 +103,5 @@
                  (debug "at max depth")
                  (recur next
                         maxdepth
-                        new-current
                         links
                         visited))))))))))
-
-;; for each link
-;;   if visited continue
-;;   if depth lower then maxdepth
