@@ -46,12 +46,14 @@
 
 (defn print-link [link depth]
   (let [indent (apply str (repeat depth "  "))
-        body (trim (str (first (:content link))))
+        body (first (:content link))
         attrs (:attrs link)
         href (:href attrs)
         link-str (cond
                    (= :img (:tag body)) (str indent "<image> -> " href)
-                   true (str indent body " -> " href))]
+                   (= :stong (:tag body)) (str indent
+                                               (trim (str (first (:content link)))) " -> " href)
+                   true (str indent (trim (str body)) " -> " href))]
     (println link-str)))
 
 (defn collect-links [url depth]
