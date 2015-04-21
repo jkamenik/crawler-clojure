@@ -4,13 +4,19 @@
             [cemerick.url :refer [url]]
             [crawler-clojure.deep-merge :refer [deep-merge]]))
 
+(defn debug[& args]
+  ;; (apply println "---" args))
+  )
+
 (defn find-links [html]
   (let [links (html/select html [[:a (html/attr? :href)]])]
     (filter (fn [link]
               (let [body (first (:content link))
                     attrs (:attrs link)
                     href  (:href attrs)]
-                (not (or (= nil body) (= "#" href)))))
+                (not (or (= nil body)
+                         (= "#" href)
+                         (= nil href)))))
             links)))
 
 (defn parse [s]
@@ -57,31 +63,50 @@
              abs)) links)))
 
 (defn crawl
-  ([url maxdepth] (crawl {:depth 0 :attrs {:href url}} maxdepth 0 [] []))
+  ([url maxdepth] (crawl {:depth 0 :attrs {:href url}} maxdepth 0 () []))
   ([link maxdepth current links visited]
-   (when link
+   (debug "link" link current)
+   (debug "# links" (count links))
+   (if link
      (let [url (url-from-link link)
-           depth (or (:depth link) 0)]
-       ;; (println "---" depth link maxdepth current visited)
-       ;; (println (count links))
+           depth (or (:depth link) 0)
+           next (first links)
+           links (rest links)
+           new-current (inc current)]
        (if (contains? visited url)
-         nil ;; do nothing if visited
+         (do
+           (debug "visited")
+           (print-link link depth)
+           ;; do nothing if visited
+           (recur next
+                  maxdepth
+                  new-current
+                  links
+                  visited))
          (when (<= depth maxdepth)
-           ;; (println depth maxdepth)
            (print-link link depth)
            (let [visited (conj visited url)]
              (if (< depth maxdepth)
                ;; We can go at least once more, collect links
                (let [l (collect-links url (inc current))
-                     links (apply conj links l)]
-                 (recur (first links)
+                     links (apply conj links l)
+                     next (first links)
+                     links (rest links)]
+                 (debug "less then max depth, collecting links")
+                 (recur next
                         maxdepth
-                        (inc current)
-                        (vec (rest links))
+                        new-current
+                        links
                         visited))
                ;; Our children will be ignored, don't bother collecting
-               (recur (first links)
-                      maxdepth
-                      (inc current)
-                      (vec (rest links))
-                      visited)))))))))
+               (do
+                 (debug "at max depth")
+                 (recur next
+                        maxdepth
+                        new-current
+                        links
+                        visited))))))))))
+
+;; for each link
+;;   if visited continue
+;;   if depth lower then maxdepth
