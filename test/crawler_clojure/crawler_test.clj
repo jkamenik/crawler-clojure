@@ -6,9 +6,9 @@
 (def abs-link-item {:attrs {:href "http://google.com"}})
 
 (deftest abs-url-test
-  (is (= "http://google.com" (abs-url "bar" abs-link-item)))
-  (is (= "bar/foo" (abs-url "bar" relative-link-item))))
+  (is (= "http://google.com" (abs-url "https://bar" abs-link-item)))
+  (is (= "https://bar/foo" (abs-url "https://bar" relative-link-item))))
 
 (deftest abs-link-test
-  (is (= {:attrs {:href "http://google.com"}} (abs-link "bar" abs-link-item)))
-  (is (= {:attrs {:href "bar/foo"}} (abs-link "bar" relative-link-item))))
+  (is (= {:attrs {:href "http://google.com"}} (abs-link "https://bar" abs-link-item)))
+  (is (= {:attrs {:href "https://bar/foo"}} (abs-link "https://bar" relative-link-item))))
