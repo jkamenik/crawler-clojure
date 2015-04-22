@@ -67,43 +67,19 @@
                  abs (abs-link url with-depth)]
              abs)) links)))
 
-(defn crawl
-  ([url maxdepth] (crawl {:depth 0 :attrs {:href url}} maxdepth () (set ())))
-  ([link maxdepth links visited]
-   (debug "link" link)
-   (debug "# links" (count links))
-   (when link
-     (let [url (url-from-link link)
-           depth (or (:depth link) 0)
-           next (first links)
-           links (rest links)]
-       (if (contains? visited url)
-         (do
-           (debug "visited")
-           (print-link link depth)
-           ;; do nothing if visited, just recurse to the next
-           (recur next
-                  maxdepth
-                  links
-                  visited))
-         (when (<= depth maxdepth)
-           (print-link link depth)
-           (let [visited (conj visited url)]
-             (if (< depth maxdepth)
-               ;; We can go at least once more, collect links
-               (let [l (collect-links url (inc depth))
-                     links (into links l)
-                     next (first links)
-                     links (rest links)]
-                 (debug "less then max depth, collecting links")
-                 (recur next
-                        maxdepth
-                        links
-                        visited))
-               ;; Our children will be ignored, don't bother collecting
-               (do
-                 (debug "at max depth")
-                 (recur next
-                        maxdepth
-                        links
-                        visited))))))))))
+
+(def visited (atom (set ())))
+
+(defn rcrawl [links maxdepth]
+  (doseq [link links]
+    (let [url (url-from-link link)
+          depth (or (:depth link) 0)]
+      (print-link link depth)
+      (when (not (contains? @visited url))
+        (swap! visited conj url)
+        (when (< depth maxdepth)
+          (let [ls (collect-links url (inc depth))]
+            (rcrawl ls maxdepth)))))))
+
+(defn crawl [url maxdepth]
+  (rcrawl [{:depth 0 :attrs {:href url}}] maxdepth))
